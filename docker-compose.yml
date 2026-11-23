@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16
+    container_name: user-management-db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d UserDetails"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    image: docker-user-management-system:1.0
+    container_name: user-management-api
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - backend
+
+volumes:
+  postgres_data:
+
+networks:
+  backend:
